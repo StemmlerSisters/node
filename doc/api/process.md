@@ -330,7 +330,7 @@ most convenient for scripts).
 ### Event: `'workerMessage'`
 
 <!-- YAML
-added: REPLACEME
+added: v22.5.0
 -->
 
 * `value` {any} A value transmitted using [`postMessageToThread()`][].
@@ -892,7 +892,7 @@ added: v0.5.0
 
 The operating system CPU architecture for which the Node.js binary was compiled.
 Possible values are: `'arm'`, `'arm64'`, `'ia32'`, `'loong64'`, `'mips'`,
-`'mipsel'`, `'ppc'`, `'ppc64'`, `'riscv64'`, `'s390'`, `'s390x'`, and `'x64'`.
+`'mipsel'`, `'ppc64'`, `'riscv64'`, `'s390'`, `'s390x'`, and `'x64'`.
 
 ```mjs
 import { arch } from 'node:process';
@@ -1101,7 +1101,6 @@ An example of the possible output looks like:
      node_shared_zlib: 'false',
      node_use_openssl: 'true',
      node_shared_openssl: 'false',
-     strict_aliasing: 'true',
      target_arch: 'x64',
      v8_use_snapshot: 1
    }
@@ -1897,10 +1896,169 @@ a code.
 Specifying a code to [`process.exit(code)`][`process.exit()`] will override any
 previous setting of `process.exitCode`.
 
+## `process.features.cached_builtins`
+
+<!-- YAML
+added: v12.0.0
+-->
+
+* {boolean}
+
+A boolean value that is `true` if the current Node.js build is caching builtin modules.
+
+## `process.features.debug`
+
+<!-- YAML
+added: v0.5.5
+-->
+
+* {boolean}
+
+A boolean value that is `true` if the current Node.js build is a debug build.
+
+## `process.features.inspector`
+
+<!-- YAML
+added: v11.10.0
+-->
+
+* {boolean}
+
+A boolean value that is `true` if the current Node.js build includes the inspector.
+
+## `process.features.ipv6`
+
+<!-- YAML
+added: v0.5.3
+deprecated:
+  - v23.4.0
+  - v22.13.0
+-->
+
+> Stability: 0 - Deprecated. This property is always true, and any checks based on it are
+> redundant.
+
+* {boolean}
+
+A boolean value that is `true` if the current Node.js build includes support for IPv6.
+
+Since all Node.js builds have IPv6 support, this value is always `true`.
+
+## `process.features.require_module`
+
+<!-- YAML
+added:
+ - v23.0.0
+ - v22.10.0
+-->
+
+* {boolean}
+
+A boolean value that is `true` if the current Node.js build supports
+[loading ECMAScript modules using `require()`][].
+
+## `process.features.tls`
+
+<!-- YAML
+added: v0.5.3
+-->
+
+* {boolean}
+
+A boolean value that is `true` if the current Node.js build includes support for TLS.
+
+## `process.features.tls_alpn`
+
+<!-- YAML
+added: v4.8.0
+deprecated:
+  - v23.4.0
+  - v22.13.0
+-->
+
+> Stability: 0 - Deprecated. Use `process.features.tls` instead.
+
+* {boolean}
+
+A boolean value that is `true` if the current Node.js build includes support for ALPN in TLS.
+
+In Node.js 11.0.0 and later versions, the OpenSSL dependencies feature unconditional ALPN support.
+This value is therefore identical to that of `process.features.tls`.
+
+## `process.features.tls_ocsp`
+
+<!-- YAML
+added: v0.11.13
+deprecated:
+  - v23.4.0
+  - v22.13.0
+-->
+
+> Stability: 0 - Deprecated. Use `process.features.tls` instead.
+
+* {boolean}
+
+A boolean value that is `true` if the current Node.js build includes support for OCSP in TLS.
+
+In Node.js 11.0.0 and later versions, the OpenSSL dependencies feature unconditional OCSP support.
+This value is therefore identical to that of `process.features.tls`.
+
+## `process.features.tls_sni`
+
+<!-- YAML
+added: v0.5.3
+deprecated:
+  - v23.4.0
+  - v22.13.0
+-->
+
+> Stability: 0 - Deprecated. Use `process.features.tls` instead.
+
+* {boolean}
+
+A boolean value that is `true` if the current Node.js build includes support for SNI in TLS.
+
+In Node.js 11.0.0 and later versions, the OpenSSL dependencies feature unconditional SNI support.
+This value is therefore identical to that of `process.features.tls`.
+
+## `process.features.typescript`
+
+<!-- YAML
+added:
+ - v23.0.0
+ - v22.10.0
+-->
+
+> Stability: 1.1 - Active development
+
+* {boolean|string}
+
+A value that is `"strip"` by default,
+`"transform"` if Node.js is run with `--experimental-transform-types`, and `false` if
+Node.js is run with `--no-experimental-strip-types`.
+
+## `process.features.uv`
+
+<!-- YAML
+added: v0.5.3
+deprecated:
+  - v23.4.0
+  - v22.13.0
+-->
+
+> Stability: 0 - Deprecated. This property is always true, and any checks based on it are
+> redundant.
+
+* {boolean}
+
+A boolean value that is `true` if the current Node.js build includes support for libuv.
+
+Since it's not possible to build Node.js without libuv, this value is always `true`.
+
 ## `process.finalization.register(ref, callback)`
 
 <!-- YAML
-added: REPLACEME
+added: v22.5.0
 -->
 
 > Stability: 1.1 - Active Development
@@ -1993,10 +2151,10 @@ class Test {
   constructor() {
     finalization.register(this, (ref) => ref.dispose());
 
-    // even something like this is highly discouraged
+    // Even something like this is highly discouraged
     // finalization.register(this, () => this.dispose());
-   }
-   dispose() {}
+  }
+  dispose() {}
 }
 ```
 
@@ -2009,7 +2167,7 @@ as it is not guaranteed that the callback will be called under all circumstances
 ## `process.finalization.registerBeforeExit(ref, callback)`
 
 <!-- YAML
-added: REPLACEME
+added: v22.5.0
 -->
 
 > Stability: 1.1 - Active Development
@@ -2030,7 +2188,7 @@ this means that there is a possibility that the callback will not be called unde
 ## `process.finalization.unregister(ref)`
 
 <!-- YAML
-added: REPLACEME
+added: v22.5.0
 -->
 
 > Stability: 1.1 - Active Development
@@ -2153,7 +2311,9 @@ console.log('After:', getActiveResourcesInfo());
 ## `process.getBuiltinModule(id)`
 
 <!-- YAML
-added: v22.3.0
+added:
+- v22.3.0
+- v20.16.0
 -->
 
 * `id` {string} ID of the built-in module being requested.
@@ -2709,6 +2869,11 @@ console.log(memoryUsage.rss());
 <!-- YAML
 added: v0.1.26
 changes:
+  - version:
+    - v22.7.0
+    - v20.18.0
+    pr-url: https://github.com/nodejs/node/pull/51280
+    description: Changed stability to Legacy.
   - version: v18.0.0
     pr-url: https://github.com/nodejs/node/pull/41678
     description: Passing an invalid callback to the `callback` argument
@@ -2718,6 +2883,8 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/1077
     description: Additional arguments after `callback` are now supported.
 -->
+
+> Stability: 3 - Legacy: Use [`queueMicrotask()`][] instead.
 
 * `callback` {Function}
 * `...args` {any} Additional arguments to pass when invoking the `callback`
@@ -2853,34 +3020,40 @@ function definitelyAsync(arg, cb) {
 
 ### When to use `queueMicrotask()` vs. `process.nextTick()`
 
-The [`queueMicrotask()`][] API is an alternative to `process.nextTick()` that
-also defers execution of a function using the same microtask queue used to
-execute the then, catch, and finally handlers of resolved promises. Within
-Node.js, every time the "next tick queue" is drained, the microtask queue
+The [`queueMicrotask()`][] API is an alternative to `process.nextTick()` that instead of using the
+"next tick queue" defers execution of a function using the same microtask queue used to execute the
+then, catch, and finally handlers of resolved promises.
+
+Within Node.js, every time the "next tick queue" is drained, the microtask queue
 is drained immediately after.
+
+So in CJS modules `process.nextTick()` callbacks are always run before `queueMicrotask()` ones.
+However since ESM modules are processed already as part of the microtask queue, there
+`queueMicrotask()` callbacks are always exectued before `process.nextTick()` ones since Node.js
+is already in the process of draining the microtask queue.
 
 ```mjs
 import { nextTick } from 'node:process';
 
-Promise.resolve().then(() => console.log(2));
-queueMicrotask(() => console.log(3));
-nextTick(() => console.log(1));
+Promise.resolve().then(() => console.log('resolve'));
+queueMicrotask(() => console.log('microtask'));
+nextTick(() => console.log('nextTick'));
 // Output:
-// 1
-// 2
-// 3
+// resolve
+// microtask
+// nextTick
 ```
 
 ```cjs
 const { nextTick } = require('node:process');
 
-Promise.resolve().then(() => console.log(2));
-queueMicrotask(() => console.log(3));
-nextTick(() => console.log(1));
+Promise.resolve().then(() => console.log('resolve'));
+queueMicrotask(() => console.log('microtask'));
+nextTick(() => console.log('nextTick'));
 // Output:
-// 1
-// 2
-// 3
+// nextTick
+// resolve
+// microtask
 ```
 
 For _most_ userland use cases, the `queueMicrotask()` API provides a portable
@@ -2951,7 +3124,7 @@ added: v20.0.0
 
 * {Object}
 
-This API is available through the [`--experimental-permission`][] flag.
+This API is available through the [`--permission`][] flag.
 
 `process.permission` is an object whose methods are used to manage permissions
 for the current process. Additional documentation is available in the
@@ -3074,6 +3247,27 @@ const { ppid } = require('node:process');
 
 console.log(`The parent process is pid ${ppid}`);
 ```
+
+## `process.ref(maybeRefable)`
+
+<!-- YAML
+added:
+  - v23.6.0
+  - v22.14.0
+-->
+
+> Stability: 1 - Experimental
+
+* `maybeRefable` {any} An object that may be "refable".
+
+An object is "refable" if it implements the Node.js "Refable protocol".
+Specifically, this means that the object implements the `Symbol.for('nodejs.ref')`
+and `Symbol.for('nodejs.unref')` methods. "Ref'd" objects will keep the Node.js
+event loop alive, while "unref'd" objects will not. Historically, this was
+implemented by using `ref()` and `unref()` methods directly on the objects.
+This pattern, however, is being deprecated in favor of the "Refable protocol"
+in order to better support Web Platform API types whose APIs cannot be modified
+to add `ref()` and `unref()` methods but still need to support that behavior.
 
 ## `process.release`
 
@@ -3366,6 +3560,18 @@ const { report } = require('node:process');
 
 console.log(`Report on exception: ${report.reportOnUncaughtException}`);
 ```
+
+### `process.report.excludeEnv`
+
+<!-- YAML
+added:
+  - v23.3.0
+  - v22.13.0
+-->
+
+* {boolean}
+
+If `true`, a diagnostic report is generated without the environment variables.
 
 ### `process.report.signal`
 
@@ -3799,7 +4005,7 @@ added:
   - v14.18.0
 -->
 
-> Stability: 1 - Experimental
+> Stability: 1 - Experimental: Use [`module.setSourceMapsSupport()`][] instead.
 
 * `val` {boolean}
 
@@ -3811,6 +4017,9 @@ It provides same features as launching Node.js process with commandline options
 
 Only source maps in JavaScript files that are loaded after source maps has been
 enabled will be parsed and loaded.
+
+This implies calling `module.setSourceMapsSupport()` with an option
+`{ nodeModules: true, generatedCode: true }`.
 
 ## `process.setUncaughtExceptionCaptureCallback(fn)`
 
@@ -3846,7 +4055,7 @@ added:
   - v18.19.0
 -->
 
-> Stability: 1 - Experimental
+> Stability: 1 - Experimental: Use [`module.getSourceMapsSupport()`][] instead.
 
 * {boolean}
 
@@ -4105,6 +4314,27 @@ console.log(
 
 In [`Worker`][] threads, `process.umask(mask)` will throw an exception.
 
+## `process.unref(maybeRefable)`
+
+<!-- YAML
+added:
+  - v23.6.0
+  - v22.14.0
+-->
+
+> Stability: 1 - Experimental
+
+* `maybeUnfefable` {any} An object that may be "unref'd".
+
+An object is "unrefable" if it implements the Node.js "Refable protocol".
+Specifically, this means that the object implements the `Symbol.for('nodejs.ref')`
+and `Symbol.for('nodejs.unref')` methods. "Ref'd" objects will keep the Node.js
+event loop alive, while "unref'd" objects will not. Historically, this was
+implemented by using `ref()` and `unref()` methods directly on the objects.
+This pattern, however, is being deprecated in favor of the "Refable protocol"
+in order to better support Web Platform API types whose APIs cannot be modified
+to add `ref()` and `unref()` methods but still need to support that behavior.
+
 ## `process.uptime()`
 
 <!-- YAML
@@ -4262,7 +4492,7 @@ cases:
   code will be `128` + `6`, or `134`.
 
 [Advanced serialization for `child_process`]: child_process.md#advanced-serialization
-[Android building]: https://github.com/nodejs/node/blob/HEAD/BUILDING.md#androidandroid-based-devices-eg-firefox-os
+[Android building]: https://github.com/nodejs/node/blob/HEAD/BUILDING.md#android
 [Child Process]: child_process.md
 [Cluster]: cluster.md
 [Duplex]: stream.md#duplex-and-transform-streams
@@ -4278,8 +4508,8 @@ cases:
 [`'exit'`]: #event-exit
 [`'message'`]: child_process.md#event-message
 [`'uncaughtException'`]: #event-uncaughtexception
-[`--experimental-permission`]: cli.md#--experimental-permission
 [`--no-deprecation`]: cli.md#--no-deprecation
+[`--permission`]: cli.md#--permission
 [`--unhandled-rejections`]: cli.md#--unhandled-rejectionsmode
 [`Buffer`]: buffer.md
 [`ChildProcess.disconnect()`]: child_process.md#subprocessdisconnect
@@ -4294,7 +4524,9 @@ cases:
 [`console.error()`]: console.md#consoleerrordata-args
 [`console.log()`]: console.md#consolelogdata-args
 [`domain`]: domain.md
+[`module.getSourceMapsSupport()`]: module.md#modulegetsourcemapssupport
 [`module.isBuiltin(id)`]: module.md#moduleisbuiltinmodulename
+[`module.setSourceMapsSupport()`]: module.md#modulesetsourcemapssupportenabled-options
 [`net.Server`]: net.md#class-netserver
 [`net.Socket`]: net.md#class-netsocket
 [`os.constants.dlopen`]: os.md#dlopen-constants
@@ -4319,6 +4551,7 @@ cases:
 [built-in modules with mandatory `node:` prefix]: modules.md#built-in-modules-with-mandatory-node-prefix
 [debugger]: debugger.md
 [deprecation code]: deprecations.md
+[loading ECMAScript modules using `require()`]: modules.md#loading-ecmascript-modules-using-require
 [note on process I/O]: #a-note-on-process-io
 [process.cpuUsage]: #processcpuusagepreviousvalue
 [process_emit_warning]: #processemitwarningwarning-type-code-ctor

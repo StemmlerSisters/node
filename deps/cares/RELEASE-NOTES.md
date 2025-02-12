@@ -1,48 +1,25 @@
-## c-ares version 1.32.1 - July 7 2024
+## c-ares version 1.34.4 - December 14 2024
 
 This is a bugfix release.
 
-Bugfixes:
-* Channel lock needs to be recursive to ensure calls into c-ares functions can
-  be made from callbacks otherwise deadlocks will occur.  This regression was
-  introduced in 1.32.0.
-
-
-## c-ares version 1.32.0 - July 4 2024
-
-This is a feature and bugfix release.
-
-Features:
-
-* Add support for DNS 0x20 to help prevent cache poisoning attacks, enabled
-  by specifying `ARES_FLAG_DNS0x20`.  Disabled by default. [PR #800](https://github.com/c-ares/c-ares/pull/800)
-* Rework query timeout logic to automatically adjust timeouts based on network
-  conditions.  The timeout specified now is only used as a hint until there
-  is enough history to calculate a more valid timeout. [PR #794](https://github.com/c-ares/c-ares/pull/794)
-
 Changes:
-
-* DNS RR TXT strings should not be automatically concatenated as there are use
-  cases outside of RFC 7208.  In order to maintain ABI compliance, the ability
-  to retrieve TXT strings concatenated is retained as well as a new API to
-  retrieve the individual strings.  This restores behavior from c-ares 1.20.0.
-  [PR #801](https://github.com/c-ares/c-ares/pull/801)
-* Clean up header inclusion logic to make hacking on code easier. [PR #797](https://github.com/c-ares/c-ares/pull/797)
-* GCC/Clang: Enable even more strict warnings to catch more coding flaws. [253bdee](https://github.com/c-ares/c-ares/commit/253bdee)
-* MSVC: Enable `/W4` warning level. [PR #792](https://github.com/c-ares/c-ares/pull/792)
+* QNX Port: Port to QNX 8, add primary config reading support, add CI build. [PR #934](https://github.com/c-ares/c-ares/pull/934), [PR #937](https://github.com/c-ares/c-ares/pull/937), [PR #938](https://github.com/c-ares/c-ares/pull/938)
 
 Bugfixes:
-
-* Tests: Fix thread race condition in test cases for EventThread. [PR #803](https://github.com/c-ares/c-ares/pull/803)
-* Windows: Fix building with UNICODE. [PR #802](https://github.com/c-ares/c-ares/pull/802)
-* Thread Saftey: `ares_timeout()` was missing lock. [74a64e4](https://github.com/c-ares/c-ares/commit/74a64e4)
-* Fix building with DJGPP (32bit protected mode DOS). [PR #789](https://github.com/c-ares/c-ares/pull/789)
+* Empty TXT records were not being preserved. [PR #922](https://github.com/c-ares/c-ares/pull/922)
+* docs: update deprecation notices for `ares_create_query()` and `ares_mkquery()`. [PR #910](https://github.com/c-ares/c-ares/pull/910)
+* license: some files weren't properly updated. [PR #920](https://github.com/c-ares/c-ares/pull/920)
+* Fix bind local device regression from 1.34.0. [PR #929](https://github.com/c-ares/c-ares/pull/929), [PR #931](https://github.com/c-ares/c-ares/pull/931), [PR #935](https://github.com/c-ares/c-ares/pull/935)
+* CMake: set policy version to prevent deprecation warnings. [PR #932](https://github.com/c-ares/c-ares/pull/932)
+* CMake: shared and static library names should be the same on unix platforms like autotools uses. [PR #933](https://github.com/c-ares/c-ares/pull/933)
+* Update to latest autoconf archive macros for enhanced system compatibility. [PR #936](https://github.com/c-ares/c-ares/pull/936)
 
 Thanks go to these friendly people for their efforts and contributions for this
 release:
 
 * Brad House (@bradh352)
-* Cheng (@zcbenz)
-
-
-
+* Daniel Stenberg (@bagder)
+* Gregor Jasny (@gjasny)
+* @marcovsz
+* Nikolaos Chatzikonstantinou (@createyourpersonalaccount)
+* @vlasovsoft1979

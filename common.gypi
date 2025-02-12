@@ -27,6 +27,7 @@
 
     'clang%': 0,
     'error_on_warn%': 'false',
+    'suppress_all_error_on_warn%': 'false',
 
     'openssl_product': '<(STATIC_LIB_PREFIX)openssl<(STATIC_LIB_SUFFIX)',
     'openssl_no_asm%': 0,
@@ -36,7 +37,7 @@
 
     # Reset this number to 0 on major V8 upgrades.
     # Increment by one for each non-official patch applied to deps/v8.
-    'v8_embedder_string': '-node.16',
+    'v8_embedder_string': '-node.11',
 
     ##### V8 defaults for Node.js #####
 
@@ -110,9 +111,10 @@
         'v8_base': '<(PRODUCT_DIR)/libv8_snapshot.a',
       }],
       # V8 pointer compression only supports 64bit architectures.
-      ['target_arch in "arm ia32 mips mipsel ppc"', {
+      ['target_arch in "arm ia32 mips mipsel"', {
         'v8_enable_pointer_compression': 0,
         'v8_enable_31bit_smis_on_64bit_arch': 0,
+        'v8_enable_sandbox': 0
       }],
       ['target_arch in "ppc64 s390x"', {
         'v8_enable_backtrace': 1,
@@ -488,7 +490,12 @@
       }],
       [ 'OS in "linux freebsd openbsd solaris android aix os400 cloudabi"', {
         'cflags': [ '-Wall', '-Wextra', '-Wno-unused-parameter', ],
-        'cflags_cc': [ '-fno-rtti', '-fno-exceptions', '-std=gnu++20' ],
+        'cflags_cc': [
+          '-fno-rtti',
+          '-fno-exceptions',
+          '-fno-strict-aliasing',
+          '-std=gnu++20',
+        ],
         'defines': [ '__STDC_FORMAT_MACROS' ],
         'ldflags': [ '-rdynamic' ],
         'target_conditions': [
@@ -510,10 +517,6 @@
                 'cflags': [ '-m64' ],
                 'ldflags': [ '-m64' ],
               }],
-              [ 'host_arch=="ppc" and OS not in "aix os400"', {
-                'cflags': [ '-m32' ],
-                'ldflags': [ '-m32' ],
-              }],
               [ 'host_arch=="ppc64" and OS not in "aix os400"', {
                 'cflags': [ '-m64', '-mminimal-toc' ],
                 'ldflags': [ '-m64' ],
@@ -533,10 +536,6 @@
               [ 'target_arch=="x64"', {
                 'cflags': [ '-m64' ],
                 'ldflags': [ '-m64' ],
-              }],
-              [ 'target_arch=="ppc" and OS not in "aix os400"', {
-                'cflags': [ '-m32' ],
-                'ldflags': [ '-m32' ],
               }],
               [ 'target_arch=="ppc64" and OS not in "aix os400"', {
                 'cflags': [ '-m64', '-mminimal-toc' ],
@@ -619,12 +618,10 @@
           'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',        # -fno-exceptions
           'GCC_ENABLE_CPP_RTTI': 'NO',              # -fno-rtti
           'GCC_ENABLE_PASCAL_STRINGS': 'NO',        # No -mpascal-strings
+          'GCC_STRICT_ALIASING': 'NO',              # -fno-strict-aliasing
           'PREBINDING': 'NO',                       # No -Wl,-prebind
           'MACOSX_DEPLOYMENT_TARGET': '11.0',       # -mmacosx-version-min=11.0
           'USE_HEADERMAP': 'NO',
-          'OTHER_CFLAGS': [
-            '-fno-strict-aliasing',
-          ],
           'WARNING_CFLAGS': [
             '-Wall',
             '-Wendif-labels',

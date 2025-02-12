@@ -73,7 +73,7 @@ static void Abort(const FunctionCallbackInfo<Value>& args) {
 // For internal testing only, not exposed to userland.
 static void CauseSegfault(const FunctionCallbackInfo<Value>& args) {
   // This should crash hard all platforms.
-  volatile void** d = static_cast<volatile void**>(nullptr);
+  void* volatile* d = static_cast<void* volatile*>(nullptr);
   *d = nullptr;
 }
 
@@ -312,12 +312,12 @@ static void GetActiveResourcesInfo(const FunctionCallbackInfo<Value>& args) {
   // Active timeouts
   resources_info.insert(resources_info.end(),
                         env->timeout_info()[0],
-                        OneByteString(env->isolate(), "Timeout"));
+                        FIXED_ONE_BYTE_STRING(env->isolate(), "Timeout"));
 
   // Active immediates
   resources_info.insert(resources_info.end(),
                         env->immediate_info()->ref_count(),
-                        OneByteString(env->isolate(), "Immediate"));
+                        FIXED_ONE_BYTE_STRING(env->isolate(), "Immediate"));
 
   args.GetReturnValue().Set(
       Array::New(env->isolate(), resources_info.data(), resources_info.size()));

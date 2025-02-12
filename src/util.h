@@ -38,8 +38,11 @@
 
 #include <array>
 #include <bit>
+#include <filesystem>
 #include <limits>
 #include <memory>
+#include <optional>
+#include <ranges>
 #include <set>
 #include <string>
 #include <string_view>
@@ -55,6 +58,8 @@
 #endif
 
 namespace node {
+
+constexpr char kPathSeparator = std::filesystem::path::preferred_separator;
 
 #ifdef _WIN32
 /* MAX_PATH is in characters, not bytes. Make sure we have enough headroom. */
@@ -144,9 +149,9 @@ void DumpJavaScriptBacktrace(FILE* fp);
   do {                                                                         \
     /* Make sure that this struct does not end up in inline code, but      */  \
     /* rather in a read-only data section when modifying this code.        */  \
-    static const node::AssertionInfo args = {                                  \
+    static const node::AssertionInfo error_and_abort_args = {                  \
         __FILE__ ":" STRINGIFY(__LINE__), #expr, PRETTY_FUNCTION_NAME};        \
-    node::Assert(args);                                                        \
+    node::Assert(error_and_abort_args);                                        \
     /* `node::Assert` doesn't return. Add an [[noreturn]] abort() here to  */  \
     /* make the compiler happy about no return value in the caller         */  \
     /* function when calling ERROR_AND_ABORT.                              */  \
@@ -154,12 +159,8 @@ void DumpJavaScriptBacktrace(FILE* fp);
   } while (0)
 
 #ifdef __GNUC__
-#define LIKELY(expr) __builtin_expect(!!(expr), 1)
-#define UNLIKELY(expr) __builtin_expect(!!(expr), 0)
 #define PRETTY_FUNCTION_NAME __PRETTY_FUNCTION__
 #else
-#define LIKELY(expr) expr
-#define UNLIKELY(expr) expr
 #if defined(_MSC_VER)
 #define PRETTY_FUNCTION_NAME __FUNCSIG__
 #else
@@ -170,11 +171,11 @@ void DumpJavaScriptBacktrace(FILE* fp);
 #define STRINGIFY_(x) #x
 #define STRINGIFY(x) STRINGIFY_(x)
 
-#define CHECK(expr)                                                           \
-  do {                                                                        \
-    if (UNLIKELY(!(expr))) {                                                  \
-      ERROR_AND_ABORT(expr);                                                  \
-    }                                                                         \
+#define CHECK(expr)                                                            \
+  do {                                                                         \
+    if (!(expr)) [[unlikely]] {                                                \
+      ERROR_AND_ABORT(expr);                                                   \
+    }                                                                          \
   } while (0)
 
 #define CHECK_EQ(a, b) CHECK((a) == (b))
@@ -215,7 +216,7 @@ void DumpJavaScriptBacktrace(FILE* fp);
 #define UNREACHABLE(...)                                                      \
   ERROR_AND_ABORT("Unreachable code reached" __VA_OPT__(": ") __VA_ARGS__)
 
-// ECMA262 20.1.2.6 Number.MAX_SAFE_INTEGER (2^53-1)
+// ECMA-262, 15th edition, 21.1.2.6. Number.MAX_SAFE_INTEGER (2^53-1)
 constexpr int64_t kMaxSafeJsInteger = 9007199254740991;
 
 inline bool IsSafeJsInt(v8::Local<v8::Value> v);
@@ -306,7 +307,7 @@ class KVStore {
 
   virtual v8::MaybeLocal<v8::String> Get(v8::Isolate* isolate,
                                          v8::Local<v8::String> key) const = 0;
-  virtual v8::Maybe<std::string> Get(const char* key) const = 0;
+  virtual std::optional<std::string> Get(const char* key) const = 0;
   virtual void Set(v8::Isolate* isolate,
                    v8::Local<v8::String> key,
                    v8::Local<v8::String> value) = 0;
@@ -317,9 +318,9 @@ class KVStore {
   virtual v8::Local<v8::Array> Enumerate(v8::Isolate* isolate) const = 0;
 
   virtual std::shared_ptr<KVStore> Clone(v8::Isolate* isolate) const;
-  virtual v8::Maybe<bool> AssignFromObject(v8::Local<v8::Context> context,
+  virtual v8::Maybe<void> AssignFromObject(v8::Local<v8::Context> context,
                                            v8::Local<v8::Object> entries);
-  v8::Maybe<bool> AssignToObject(v8::Isolate* isolate,
+  v8::Maybe<void> AssignToObject(v8::Isolate* isolate,
                                  v8::Local<v8::Context> context,
                                  v8::Local<v8::Object> object);
 
@@ -339,6 +340,9 @@ inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
 inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
                                            const unsigned char* data,
                                            int length = -1);
+
+inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
+                                           std::string_view str);
 
 // Used to be a macro, hence the uppercase name.
 template <int N>
@@ -384,6 +388,11 @@ constexpr size_t strsize(const T (&)[N]) {
 template <typename T, size_t kStackStorageSize = 1024>
 class MaybeStackBuffer {
  public:
+  // Disallow copy constructor
+  MaybeStackBuffer(const MaybeStackBuffer&) = delete;
+  // Disallow copy assignment operator
+  MaybeStackBuffer& operator=(const MaybeStackBuffer& other) = delete;
+
   const T* out() const {
     return buf_;
   }
@@ -561,6 +570,10 @@ class BufferValue : public MaybeStackBuffer<char> {
   inline std::string_view ToStringView() const {
     return std::string_view(out(), length());
   }
+  inline std::u8string_view ToU8StringView() const {
+    return std::u8string_view(reinterpret_cast<const char8_t*>(out()),
+                              length());
+  }
 };
 
 #define SPREAD_BUFFER_ARG(val, name)                                           \
@@ -702,8 +715,6 @@ using DeleteFnPtr = typename FunctionDeleter<T, function>::Pointer;
 inline v8::Maybe<void> FromV8Array(v8::Local<v8::Context> context,
                                    v8::Local<v8::Array> js_array,
                                    std::vector<v8::Global<v8::Value>>* out);
-std::vector<std::string_view> SplitString(const std::string_view in,
-                                          const std::string_view delim);
 
 inline v8::MaybeLocal<v8::Value> ToV8Value(v8::Local<v8::Context> context,
                                            std::string_view str,
@@ -725,6 +736,12 @@ template <typename T, typename U>
 inline v8::MaybeLocal<v8::Value> ToV8Value(v8::Local<v8::Context> context,
                                            const std::unordered_map<T, U>& map,
                                            v8::Isolate* isolate = nullptr);
+
+template <typename T, std::size_t U>
+inline v8::MaybeLocal<v8::Value> ToV8Value(
+    v8::Local<v8::Context> context,
+    const std::ranges::elements_view<T, U>& vec,
+    v8::Isolate* isolate = nullptr);
 
 // These macros expects a `Isolate* isolate` and a `Local<Context> context`
 // to be in the scope.
